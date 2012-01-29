@@ -19,8 +19,10 @@ LIBS += -lswscale -lswresample -lavformat -lavcodec -lavutil -lavfilter -lavdevi
 # SDL CONFIG
 INCLUDE_LIST += -I/usr/include/mingw -I/usr/local/include/SDL
 CFLAGS += 
-DEFINE_LIST += -lmingw32
-LIBS += `sdl-config --cflags --libs`
+DEFINE_LIST += -D_GNU_SOURCE=1 -Dmain=SDL_main
+#LIBS += `sdl-config --cflags --libs
+#Removinw -mwindows to make console output
+LIBS += -lmingw32 -lSDLmain -lSDL -liconv -lm -luser32 -lgdi32 -lwinmm #-mwindows 
 
 # SOURCE and OBJECTS
 OUTPUT := player.exe

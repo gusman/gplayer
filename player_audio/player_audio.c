@@ -119,7 +119,6 @@ bool player_audio_play(void)
 	}
 	printf("Audio playback starts\n");
 	SDL_PauseAudio(0);
-
 	return TRUE;
 }
 
