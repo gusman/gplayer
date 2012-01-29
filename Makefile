@@ -14,13 +14,13 @@ LIBS_LIST := -L/usr/local/lib
 DEFINE_LIST := 
 
 # FFMPEG CONFIG
-LIBS += -lswscale -lswresample -lavformat -lavcodec -lavutil -lavfilter -lavdevice -lm -lws2_32 
+LIBS += -lswscale -lswresample -lavformat -lavcodec -lavutil -lavfilter -lavdevice -lm -lws2_32
 
 # SDL CONFIG
 INCLUDE_LIST += -I/usr/include/mingw -I/usr/local/include/SDL
 CFLAGS += 
-DEFINE_LIST += -D_GNU_SOURCE=1 -Dmain=SDL_main
-LIBS += -lmingw32 -lSDLmain -lSDL -mwindows 
+DEFINE_LIST += -lmingw32
+LIBS += `sdl-config --cflags --libs`
 
 # SOURCE and OBJECTS
 OUTPUT := player.exe
