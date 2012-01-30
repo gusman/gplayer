@@ -11,11 +11,12 @@ AVCodecContext	*gp_avcodec	= NULL;
 AVCodec		*gp_codec	= NULL;
 AVFrame		*gp_decoded_frame = NULL;
 AVPacket	 g_avpacket;
+unsigned char	 g_datalen;
 
 void player_audio_init(void)
 {
 	printf("[%s]\n", __FUNCTION__);
-	SDL_Init(SDL_INIT_EVERYTHING);
+	SDL_Init(SDL_INIT_AUDIO);
 	av_register_all();
 	avformat_network_init(); // <-- avoid warning, I don't know what this for?
 }
@@ -89,7 +90,7 @@ bool player_audio_get_codec(void)
 
 void player_audio_callback(void *userdata, unsigned char *stream, int len)
 {
-	printf("[%s] \n", __FUNCTION__);
+	printf("[%s] len: %d\n", __FUNCTION__, len);
 
 }
 
@@ -97,7 +98,7 @@ bool player_audio_play(void)
 {
 	SDL_AudioSpec	desired;
 	SDL_AudioSpec	obtained;
-	
+
 	if (NULL == gp_avcodec)
 	{
 		printf("ERR: [%s] gp_avcodec is NULL \n", __FUNCTION__);
@@ -117,8 +118,22 @@ bool player_audio_play(void)
 		printf("ERR, Couldn't open audio: %s\n", SDL_GetError());
 		return FALSE;
 	}
+
+	printf("Information:\n");
+	printf("obtained.freq: %d\n", obtained.freq);
+	printf("obtained.channels: %d\n", obtained.channels);
+	printf("obtained.samples: %d\n", obtained.samples);
+
 	printf("Audio playback starts\n");
 	SDL_PauseAudio(0);
+
+	g_datalen = 0xFF;
+	while (g_datalen > 0)
+	{
+		SDL_Delay(100);
+	}
+
+	SDL_CloseAudio();
 	return TRUE;
 }
 
