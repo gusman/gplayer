@@ -4,12 +4,10 @@
 
 int main(int argc, char *argv[])
 {
-	char *file_path = "testfiles/01.flac";
+	char *def_path = "testfiles/01.m4a";
+	char *file_path = NULL;
 
-	if (argc < 1)
-	{
-		printf("Usage %s audio_file\n", argv[0]);
-	}
+	file_path = def_path;
 
 	player_audio_init();
 	player_audio_open_file(file_path);

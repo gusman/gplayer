@@ -94,8 +94,9 @@ bool player_audio_get_codec(void)
 unsigned long data_len = 0; 
 AVFrame frame;
 AVPacket packet;
-unsigned char audio_buff[44112] = {0, };
+unsigned char audio_buff[44112 * 2] = {0, };
 unsigned int  audio_buff_idx = 0;
+
 void player_audio_callback(void *userdata, unsigned char *stream, int len)
 {
 #if 0
@@ -110,26 +111,39 @@ void player_audio_callback(void *userdata, unsigned char *stream, int len)
 	int8_t buffer[len];
 	int get_frame = 0;
 
-	if(0 > av_read_frame(gp_avformat, &packet))
-	{
-		g_isdecoding = 0;
-		printf("Finish decoding\n");
-		return;
-	}    
+	while (1)
+	{	
+		if(0 > av_read_frame(gp_avformat, &packet))
+		{
+			g_isdecoding = 0;
+			printf("Finish decoding\n");
+			return;
+		}    
 
-	if(0 > avcodec_decode_audio4(gp_avcodec, &frame, &get_frame, &packet))
-	{
-		printf("Decoding error\n");
-		return;
-	}
-   
-	if (get_frame)
-	{
-		int data_size;
+		if(0 > avcodec_decode_audio4(gp_avcodec, &frame, &get_frame, &packet))
+		{
+			printf("Decoding error\n");
+			return;
+		}
+	   
+		if (get_frame)
+		{
+			int data_size;
 
-		data_size = av_samples_get_buffer_size(NULL, gp_avcodec->channels, frame.nb_samples, gp_avcodec->sample_fmt, 1);
-		printf("Data size: %d\n", data_size);
-		memcpy(stream, (unsigned char *) &frame.data[0], data_size);	
+			data_size = av_samples_get_buffer_size(NULL, gp_avcodec->channels, frame.nb_samples, gp_avcodec->sample_fmt, 1);
+			
+			memcpy(&audio_buff[audio_buff_idx], (unsigned char *) frame.data[0], data_size);
+			audio_buff_idx += data_size;	
+		//	printf("Data size: %d\n", audio_buff_idx);
+		}
+
+		if (audio_buff_idx > len)
+		{
+			memcpy(stream, (unsigned char *) &audio_buff[0], len);
+			memmove(&audio_buff[0], &audio_buff[len], audio_buff_idx - len);
+			audio_buff_idx = audio_buff_idx - len;
+			break;
+		}
 	}
 #endif
 }
