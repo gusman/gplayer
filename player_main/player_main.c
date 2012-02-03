@@ -4,7 +4,7 @@
 
 int main(int argc, char *argv[])
 {
-	char *def_path = "testfiles/01.m4a";
+	char *def_path = "testfiles/01.flac";
 	char *file_path = NULL;
 
 	file_path = def_path;
