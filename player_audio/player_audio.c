@@ -4,17 +4,14 @@
 #include "libavformat/avformat.h"
 #include "libavcodec/avcodec.h"
 
-#include "player_audio_pcm.h"
-
 #define SDL_AUDIO_BUFFER_SIZE 1024
 
 AVFormatContext	*gp_avformat	= NULL;
 AVCodecContext	*gp_avcodec	= NULL;
 AVCodec		*gp_codec	= NULL;
-AVFrame		*gp_decoded_frame = NULL;
-AVPacket	 g_avpacket;
-unsigned char	 g_datalen;
 unsigned char	 g_isdecoding;
+unsigned char	 ga_audio_buff[44112 * 2] = {0, };
+unsigned int	 g_audio_buff_idx = 0;
 
 void player_audio_init(void)
 {
@@ -91,25 +88,14 @@ bool player_audio_get_codec(void)
 	return TRUE;
 }
 
-unsigned long data_len = 0; 
-AVFrame frame;
-AVPacket packet;
-unsigned char audio_buff[44112 * 2] = {0, };
-unsigned int  audio_buff_idx = 0;
+
 
 void player_audio_callback(void *userdata, unsigned char *stream, int len)
 {
-#if 0
-	printf("data_len: %d, len: %d\n", data_len, len);
-	memcpy(stream, (unsigned char*) g_TEST_MODE_SINE5SEC_NORMAL + data_len, len);
-	data_len += len;
-	if (data_len > SINE_5SEC_NORMAL_SIZE)
-		data_len = 0;
-#endif
-#if 1
-	int buffer_size = len;
-	int8_t buffer[len];
-	int get_frame = 0;
+	AVFrame frame;
+	AVPacket packet;
+	
+	int  get_frame = 0;
 
 	while (1)
 	{	
@@ -132,20 +118,19 @@ void player_audio_callback(void *userdata, unsigned char *stream, int len)
 
 			data_size = av_samples_get_buffer_size(NULL, gp_avcodec->channels, frame.nb_samples, gp_avcodec->sample_fmt, 1);
 			
-			memcpy(&audio_buff[audio_buff_idx], (unsigned char *) frame.data[0], data_size);
-			audio_buff_idx += data_size;	
+			memcpy(&ga_audio_buff[g_audio_buff_idx], (unsigned char *) frame.data[0], data_size);
+			g_audio_buff_idx += data_size;	
 		//	printf("Data size: %d\n", audio_buff_idx);
 		}
 
-		if (audio_buff_idx > len)
+		if (g_audio_buff_idx > len)
 		{
-			memcpy(stream, (unsigned char *) &audio_buff[0], len);
-			memmove(&audio_buff[0], &audio_buff[len], audio_buff_idx - len);
-			audio_buff_idx = audio_buff_idx - len;
+			memcpy(stream, (unsigned char *) &ga_audio_buff[0], len);
+			memmove(&ga_audio_buff[0], &ga_audio_buff[len], g_audio_buff_idx - len);
+			g_audio_buff_idx = g_audio_buff_idx - len;
 			break;
 		}
 	}
-#endif
 }
 
 bool player_audio_play(void)
@@ -162,10 +147,9 @@ bool player_audio_play(void)
 	desired.freq = gp_avcodec->sample_rate;
 	desired.format = AUDIO_S16SYS;
 	desired.channels = gp_avcodec->channels;
-	desired.silence = 1;
 	desired.samples = SDL_AUDIO_BUFFER_SIZE;
 	desired.callback = player_audio_callback;
-	desired.userdata = g_TEST_MODE_SINE5SEC_NORMAL;
+	desired.userdata = NULL; /* Data is come from global variable */
 
 	printf("Open audio\n");
 	if(0 > SDL_OpenAudio(&desired, &obtained))
@@ -182,7 +166,6 @@ bool player_audio_play(void)
 	printf("Audio playback starts\n");
 	SDL_PauseAudio(0);
 
-	g_datalen = 0xFF;
 	g_isdecoding = 1;
 	while (1 == g_isdecoding)
 	{
