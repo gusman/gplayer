@@ -9,9 +9,9 @@
 AVFormatContext	*gp_avformat	= NULL;
 AVCodecContext	*gp_avcodec	= NULL;
 AVCodec		*gp_codec	= NULL;
-unsigned char	 g_isdecoding;
-unsigned char	 ga_audio_buff[44112 * 2] = {0, };
-unsigned int	 g_audio_buff_idx = 0;
+uint8		 g_isdecoding;
+uint8		 ga_audio_buff[44112 * 2] = {0, };
+uint16		 g_audio_buff_idx = 0;
 
 void player_audio_init(void)
 {
@@ -45,8 +45,8 @@ bool player_audio_open_file(char *s_file_path)
 
 bool player_audio_get_codec(void)
 {
-	int idx_stream;
-	int i;
+	int16  idx_stream;
+	uint16 i;
 
 	if(0 > avformat_find_stream_info(gp_avformat, NULL))
 	{
@@ -96,7 +96,7 @@ void player_audio_callback(void *userdata, unsigned char *stream, int len)
 	AVFrame frame;
 	AVPacket packet;
 	
-	int  get_frame = 0;
+	int16 get_frame = 0;
 
 	while (1)
 	{	
@@ -117,15 +117,16 @@ void player_audio_callback(void *userdata, unsigned char *stream, int len)
 		{
 			int data_size;
 
-			data_size = av_samples_get_buffer_size(NULL, gp_avcodec->channels, frame.nb_samples, gp_avcodec->sample_fmt, 1);
+			data_size = av_samples_get_buffer_size(NULL, gp_avcodec->channels,\
+				       	frame.nb_samples, gp_avcodec->sample_fmt, 1);
 			
-			memcpy(&ga_audio_buff[g_audio_buff_idx], (unsigned char *) frame.data[0], data_size);
+			memcpy(&ga_audio_buff[g_audio_buff_idx], (uint8 *) frame.data[0], data_size);
 			g_audio_buff_idx += data_size;	
 		}
 
 		if (g_audio_buff_idx > len)
 		{
-			memcpy(stream, (unsigned char *) &ga_audio_buff[0], len);
+			memcpy(stream, (uint8 *) &ga_audio_buff[0], len);
 			memmove(&ga_audio_buff[0], &ga_audio_buff[len], g_audio_buff_idx - len);
 			g_audio_buff_idx = g_audio_buff_idx - len;
 			break;

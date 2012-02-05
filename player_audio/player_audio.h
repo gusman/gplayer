@@ -3,12 +3,6 @@
 
 #include "common/player_type.h"
 
-struct st_audio_properties {
-	
-	char *ps_filepath;
-};
-
-
 void player_audio_init(void);
 void player_audio_quit(void);
 bool player_audio_open_file(char *s_file_path);
