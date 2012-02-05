@@ -4,10 +4,15 @@
 
 int main(int argc, char *argv[])
 {
-	char *def_path = "testfiles/01.flac";
 	char *file_path = NULL;
 
-	file_path = def_path;
+	if (1 > argc)
+	{
+		DBG_ERR("Usage %s <musicfile>\n");
+		return 0;
+	}
+
+	file_path = argv[1];
 
 	player_audio_init();
 	player_audio_open_file(file_path);
